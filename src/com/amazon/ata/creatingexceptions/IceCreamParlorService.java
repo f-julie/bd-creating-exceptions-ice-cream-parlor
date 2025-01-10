@@ -1,7 +1,9 @@
 package com.amazon.ata.creatingexceptions;
 
 import com.amazon.ata.creatingexceptions.dao.CartonDao;
+import com.amazon.ata.creatingexceptions.exception.FlavorOutOfStockException;
 import com.amazon.ata.creatingexceptions.exception.NoSuchFlavorException;
+import com.amazon.ata.creatingexceptions.model.Carton;
 import com.amazon.ata.creatingexceptions.model.Flavor;
 import com.amazon.ata.creatingexceptions.model.Scoop;
 import com.amazon.ata.creatingexceptions.model.Sundae;
@@ -34,10 +36,23 @@ public class IceCreamParlorService {
      * @param flavorName - the flavor of the ice cream scoop to retrieve.
      * @return a scoop of the desired ice cream flavor.
      */
-    public Scoop getScoop(String flavorName) {
-        Flavor scoopFlavor = cartonDao.getCarton(flavorName).getFlavor();
+    public Scoop getScoop(String flavorName) throws NoSuchFlavorException, FlavorOutOfStockException {
+        // Flavor scoopFlavor;
+        Carton scoopCarton;
+        try {
+            scoopCarton = cartonDao.getCarton(flavorName);
+        } catch (AmazonS3Exception ex) {
+            throw new NoSuchFlavorException(String.format("We don't serve a flavor called [%s]!", flavorName));
+        }
 
-        return new Scoop(scoopFlavor);
+        try {
+            scoopCarton.removeScoops(1);
+        } catch (IllegalArgumentException ex) {
+            throw new FlavorOutOfStockException(String.format("Flavor [%s] is out of stock. ", flavorName));
+        }
+
+        cartonDao.saveCarton(scoopCarton);
+        return new Scoop(scoopCarton.getFlavor());
     }
 
     /**

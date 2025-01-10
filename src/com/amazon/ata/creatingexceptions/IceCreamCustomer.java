@@ -1,5 +1,6 @@
 package com.amazon.ata.creatingexceptions;
 
+import com.amazon.ata.creatingexceptions.exception.FlavorOutOfStockException;
 import com.amazon.ata.creatingexceptions.exception.NoSuchFlavorException;
 
 import com.amazonaws.services.s3.model.AmazonS3Exception;
@@ -26,7 +27,7 @@ public class IceCreamCustomer {
 
         try {
             iceCreamParlorService.getScoop(flavor);
-        } catch (AmazonS3Exception ex) {
+        } catch (NoSuchFlavorException ex) {
             return SAD;
         }
 
@@ -46,7 +47,7 @@ public class IceCreamCustomer {
 
         try {
             iceCreamParlorService.getSundae(flavors);
-        } catch (NoSuchFlavorException ex) {
+        } catch (NoSuchFlavorException | FlavorOutOfStockException ex) {
             return SAD;
         }
 
